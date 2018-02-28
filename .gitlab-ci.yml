@@ -4,7 +4,7 @@ pages:
   script:
   - cd docs
   - apk add --no-cache python3
-  - pip install sphinx sphinxcontrib-napoleon
+  - pip3 install sphinx sphinxcontrib-napoleon
   - apk --no-cache add make
   - make html
   - mv _build/html/ public/
