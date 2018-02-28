@@ -33,7 +33,7 @@ sys.path.insert(0, os.path.abspath('../'))
 extensions = ['sphinx.ext.autodoc',
               'sphinx.ext.viewcode', 'sphinxcontrib.napoleon']
 
-autodoc_mock_imports = ["Crypto", "pyHook", "pythoncom", "win32gui", "win32clipboard", "ssl", "win32api", "winreg", "tkinter"]
+autodoc_mock_imports = ["Crypto", "pyHook", "pythoncom", "win32gui", "win32clipboard", "ssl", "win32api", "winreg", "tkinter", "windll"]
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
