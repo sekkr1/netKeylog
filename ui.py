@@ -1,6 +1,5 @@
 import tkinter as tk
 from tkinter import ttk
-from ScrolledText import ScrolledText
 from threading import Thread
 from collections import OrderedDict
 
@@ -63,7 +62,7 @@ class Interval_frame(ttk.Frame):
         interval_lbl: interbal label
     """
     UNITS = OrderedDict([("secs", 1), ("mins", 60), ("hours", 60**2)])
-    DEFAULT_UNIT = UNITS.keys().index("secs")
+    DEFAULT_UNIT = list(UNITS.keys()).index("secs")
     DEFAULT_INTERVAL = 5
 
     def __init__(self, parent, *args, **kwargs):
@@ -125,7 +124,7 @@ class Right_panel(ttk.Frame):
         self.fetch_btn.bind("<ButtonRelease-1>", on_fetch_click)
         self.fetch_btn.pack(fill=tk.X)
 
-        self.keylog_text = ScrolledText(
+        self.keylog_text = tk.scrolledtext.ScrolledText(
             self, state="disabled")
         self.keylog_text.pack(fill=tk.BOTH, expand=1)
 

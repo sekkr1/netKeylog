@@ -13,6 +13,7 @@ class Event:
     """
     Object styled dictionary for clearer code
     """
+
     def __init__(self, **entries): self.__dict__.update(entries)
 
     def __eq__(self, other): return self.__dict__ == other.__dict__
@@ -34,6 +35,7 @@ class Message_socket(socket):
     """
     A message-based socket
     """
+
     def send_msg(self, msg):
         """
         Sends a message padded with its size
@@ -47,7 +49,7 @@ class Message_socket(socket):
     def recv_msg(self):
         """
         Reciebes a message that's padded with its size
-        
+
         Returns:
             The sent message
         """

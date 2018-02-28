@@ -7,17 +7,12 @@ import ssl
 from Crypto.PublicKey import RSA
 from Crypto.Cipher import PKCS1_OAEP
 from multiprocessing.pool import ThreadPool
-import Tkinter
+import tkinter as tk
 from ui import Application
 
 PRIVATE_KEY_FILE = "key.pem"
 FETCH_INTERVAL = 5
 THREADS = 32
-
-private_key = RSA.import_key(open(PRIVATE_KEY_FILE).read())
-cipher_rsa = PKCS1_OAEP.new(private_key)
-hosts = {}
-pool = ThreadPool(processes=THREADS)
 
 
 def fetch_file(host, on_file_fetched, update_hosts):
@@ -94,7 +89,12 @@ def listen_to_hosts(update_hosts):
 
 
 if __name__ == "__main__":
-    root = Tkinter.Tk()
+    private_key = RSA.import_key(open(PRIVATE_KEY_FILE).read())
+    cipher_rsa = PKCS1_OAEP.new(private_key)
+    hosts = {}
+    pool = ThreadPool(processes=THREADS)
+
+    root = tk.Tk()
     root.title("controller")
     root.columnconfigure(0, weight=1)
     root.rowconfigure(0, weight=1)
@@ -103,6 +103,6 @@ if __name__ == "__main__":
     Thread(target=fetch_files, args=(app.on_file_fetched,
                                      app.get_interval, app.update_hosts)).start()
     Thread(target=listen_to_hosts, args=(app.update_hosts,)).start()
-    app.grid(column=0, row=0, sticky=Tkinter.N +
-             Tkinter.S + Tkinter.E + Tkinter.W)
+    app.grid(column=0, row=0, sticky=tk.N +
+             tk.S + tk.E + tk.W)
     root.mainloop()
