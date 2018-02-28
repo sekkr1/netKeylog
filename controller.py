@@ -41,7 +41,6 @@ def fetch_file(host, on_file_fetched, update_hosts):
         on_file_fetched(Event(host=host, file=file))
     except (timeout, error):
         conn.close()
-        print host + " disconnected"
         del hosts[host]
         update_hosts(Event(hosts=hosts.keys()))
 
@@ -57,7 +56,6 @@ def fetch_files(on_file_fetched, get_fetch_interval, update_hosts):
     """
     global hosts, pool
     while True:
-        print get_fetch_interval()
         pool.map(lambda host: fetch_file(
             host, on_file_fetched, update_hosts), hosts.keys())
         sleep(max(0, get_fetch_interval()))
@@ -89,7 +87,6 @@ def listen_to_hosts(update_hosts):
                 sock=conn, certfile="cert.pem", keyfile="key.pem", server_side=True)
             conn = Message_socket(_sock=conn)
             hosts[ip] = conn
-            print ip + " connected"
             update_hosts(Event(hosts=hosts.keys()))
         except:
             conn.close()

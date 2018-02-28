@@ -1,5 +1,5 @@
-import Tkinter
-import ttk
+import tkinter as tk
+from tkinter import ttk
 from ScrolledText import ScrolledText
 from threading import Thread
 from collections import OrderedDict
@@ -22,12 +22,12 @@ class Left_panel(ttk.Frame):
 
     def __init__(self, parent, on_host_select, *args, **kwargs):
         ttk.Frame.__init__(self, parent, *args, **kwargs)
-        self.hosts_list = Tkinter.Listbox(
-            self, selectmode=Tkinter.SINGLE)
-        self.hosts_list.pack(fill=Tkinter.BOTH, expand=1)
+        self.hosts_list = tk.Listbox(
+            self, selectmode=tk.SINGLE)
+        self.hosts_list.pack(fill=tk.BOTH, expand=1)
         self.hosts_list.bind('<<ListboxSelect>>', on_host_select)
         self.interval_frame = Interval_frame(self)
-        self.interval_frame.pack(fill=Tkinter.X)
+        self.interval_frame.pack(fill=tk.X)
 
     def get_selected_host(self):
         """
@@ -68,20 +68,20 @@ class Interval_frame(ttk.Frame):
 
     def __init__(self, parent, *args, **kwargs):
         ttk.Frame.__init__(self, parent, *args, **kwargs)
-        self.interval = Tkinter.IntVar()
+        self.interval = tk.IntVar()
         self.interval_entry = ttk.Entry(
             self, width=9, textvariable=self.interval)
-        self.interval_entry.pack(side=Tkinter.LEFT, fill=Tkinter.X, expand=1)
+        self.interval_entry.pack(side=tk.LEFT, fill=tk.X, expand=1)
         self.interval.set(self.DEFAULT_INTERVAL)
         self.interval_entry.bind("<Key>", self.on_text_changed)
 
         self.interval_unit = ttk.Combobox(
             self, width=6, values=self.UNITS.keys())
         self.interval_unit.current(self.DEFAULT_UNIT)
-        self.interval_unit.pack(side=Tkinter.LEFT)
+        self.interval_unit.pack(side=tk.LEFT)
 
         self.interval_lbl = ttk.Label(self, text="interval")
-        self.interval_lbl.pack(side=Tkinter.LEFT)
+        self.interval_lbl.pack(side=tk.LEFT)
 
     def get_interval(self):
         """
@@ -123,11 +123,11 @@ class Right_panel(ttk.Frame):
 
         self.fetch_btn = ttk.Button(self, text="fetch")
         self.fetch_btn.bind("<ButtonRelease-1>", on_fetch_click)
-        self.fetch_btn.pack(fill=Tkinter.X)
+        self.fetch_btn.pack(fill=tk.X)
 
         self.keylog_text = ScrolledText(
             self, state="disabled")
-        self.keylog_text.pack(fill=Tkinter.BOTH, expand=1)
+        self.keylog_text.pack(fill=tk.BOTH, expand=1)
 
     def set_text(self, text, append=False):
         """
@@ -139,10 +139,10 @@ class Right_panel(ttk.Frame):
         """
         self.keylog_text.configure(state='normal')
         if not append:
-            self.keylog_text.delete(1.0, Tkinter.END)
-        self.keylog_text.insert(Tkinter.END, text)
+            self.keylog_text.delete(1.0, tk.END)
+        self.keylog_text.insert(tk.END, text)
         self.keylog_text.configure(state='disabled')
-        self.keylog_text.see(Tkinter.END)
+        self.keylog_text.see(tk.END)
 
 
 class Application(ttk.Frame):
@@ -165,9 +165,9 @@ class Application(ttk.Frame):
         ttk.Frame.__init__(self, parent, *args, **kwargs)
         self.fetch_file = fetch_file
         self.left_panel = Left_panel(self, self.on_host_select)
-        self.left_panel.pack(side=Tkinter.LEFT, fill=Tkinter.Y)
+        self.left_panel.pack(side=tk.LEFT, fill=tk.Y)
         self.right_panel = Right_panel(self, self.on_fetch_click)
-        self.right_panel.pack(side=Tkinter.LEFT, fill=Tkinter.BOTH, expand=1)
+        self.right_panel.pack(side=tk.LEFT, fill=tk.BOTH, expand=1)
 
     def display_host(self, host):
         """
@@ -232,7 +232,7 @@ class Application(ttk.Frame):
         Args:
             e: hosts ebent
         """
-        self.left_panel.hosts_list.delete(0, Tkinter.END)
+        self.left_panel.hosts_list.delete(0, tk.END)
         for host in e.hosts:
-            self.left_panel.hosts_list.insert(Tkinter.END, host)
+            self.left_panel.hosts_list.insert(tk.END, host)
         self.on_host_select(None)

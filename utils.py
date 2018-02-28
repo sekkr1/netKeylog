@@ -1,4 +1,4 @@
-import _winreg as winreg
+import winreg
 from ctypes import *
 from threading import Thread
 import win32api
