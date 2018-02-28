@@ -3,7 +3,7 @@ ui
 
 A logicless UI to the controller with exposed ebents.
 
-.. figure:: gui.png
+.. figure:: _static/gui.png
 
    How it looks like.
 
