@@ -1,11 +1,12 @@
 import winreg
-from ctypes import *
+from ctypes import windll, create_unicode_buffer
 from threading import Thread
 import win32api
 from socket import *
 import struct
 from pyHook import GetKeyState, HookConstants
 from collections import OrderedDict
+
 user32 = windll.user32
 
 
