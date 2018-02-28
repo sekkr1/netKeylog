@@ -22,6 +22,10 @@ To generate a controller / client pair run
 python generator.py -o <output_dir>
 ```
 
+## Documentation
+
+Documentation available at <http://dekel1.reches.gitlab.io/netKeylog/>
+
 ## Built With
 
 * [pyHook](https://sourceforge.net/projects/pyhook/) - The keyboard hook framework used
