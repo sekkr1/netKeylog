@@ -3,8 +3,8 @@ image: alpine
 pages:
   script:
   - cd docs
-  - apk --no-cache add py3-pip python-dev
-  - pip install sphinx sphinxcontrib-napoleon sphinx_rtd_theme
+  - apk add --no-cache python3
+  - pip install sphinx sphinxcontrib-napoleon
   - apk --no-cache add make
   - make html
   - mv _build/html/ public/
