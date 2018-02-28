@@ -1,0 +1,37 @@
+<header>
+  <nav class="top-nav">
+    <div class="container">
+      <div class="nav-wrapper">
+        <div class="row">
+          <div class="col s12 m10 offset-m1">
+            <h1 class="header" *ngIf="selectedHostIp; else noSelection">
+              {{selectedHost.name}}
+              <span class="hide-on-med-and-down grey-text text-lighten-2"> ({{selectedHost.user}})</span>
+            </h1>
+            <ng-template #noSelection>
+              <h1 class="header">
+                Please select a host
+              </h1>
+            </ng-template>
+          </div>
+        </div>
+      </div>
+    </div>
+  </nav>
+  <div class="container">
+    <a data-target="nav-mobile" class="top-nav sidenav-trigger waves-effect waves-light circle hide-on-large-only">
+      <i class="material-icons">menu</i>
+    </a>
+  </div>
+  <ul id="nav-mobile" class="sidenav sidenav-fixed" style="transform: translateX(0%);" >
+    <li *ngFor="let ip of objectKeys(hosts)" class="bold" routerLinkActive="active">
+      <a class="waves-effect waves-teal" [routerLink]="['/controller',ip]">
+        <i *ngIf="hosts[ip].state=='offline'" class="material-icons red-text">cloud_off</i>
+        <i *ngIf="hosts[ip].state=='online'" class="material-icons green-text">cloud_done</i>
+        <i *ngIf="hosts[ip].state=='away'" class="material-icons amber-text">cloud_queue</i>
+        {{hosts[ip].name}}
+        <span class="new badge" data-badge-caption="">{{ip}}</span>
+      </a>
+    </li>
+  </ul>
+</header>

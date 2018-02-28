@@ -1,6 +1,5 @@
 from flask import Flask, render_template, request
 from flask_socketio import SocketIO, emit, join_room, leave_room, rooms, Namespace
-from tinydb import Query
 
 app = Flask(__name__)
 socketio = SocketIO(app)
@@ -12,16 +11,18 @@ def index():
 
 
 class SocketServer(Namespace):
-    def __init__(self, data):
-        self.data = data
-
     def on_subscribe(self, host):
-        hostData = self.data.search(Query().ip == host)
-        if hostData:
+        data = {
+            "192.168.1.2": "<exe style='height:100%' title='asd' name='Google Chrome' exe='chrome.exe'><tab tabTitle='Facebook'><hotkey ctrl shift key='PrintScreen'></hotkey>adasdsad",
+            "192.168.1.53": "<exe name='Steam' exe='steam.exe'><tab tabTitle='Steam'>user12<hotkey key='tab'></hotkey>pass123 dasd",
+            "192.168.1.32": "<exe name='Google Chrome' exe='chrome.exe'><tab tabTitle='blayh'><hotkey ctrl shift key='PrintScreen'></hotkey>adasdsad</tab><tab tabTitle='nggger2'>bllall",
+            "192.168.1.52": "<exe name='Google Chrome' exe='chrome.exe'><tab tabTitle='blahblah'><hotkey ctrl shift key='PrintScreen'></hotkey>adasdsad"
+        }
+        if host in data:
             for room in rooms():
                 if room != request.sid:
                     leave_room(room)
-            emit("host data", hostData)
+            emit("host data", data[host])
             join_room(host)
 
     def on_connect(self):

@@ -1,0 +1,14 @@
+<div class="card blue">
+  <div class="card-content white-text row valign-wrapper card-title">
+    <div class="col s2">
+      <img src="assets/chrome.ico" alt="" class="responsive-img">
+    </div>
+    <div class="col s10">
+      <h2>{{name? name : exe}}</h2>
+      <i *ngIf="name">{{exe}}</i>
+    </div>
+  </div>
+  <div class="card-content blue lighten-2 line-in-middle">
+    <ng-content></ng-content>
+  </div>
+</div>

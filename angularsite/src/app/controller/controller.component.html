@@ -1,0 +1,9 @@
+<app-navbar [selectedHostIp]="selectedHostIp"></app-navbar>
+<main>
+  <div class="container">
+    <app-viewer *ngIf="selectedHostIp else noSelected" [selectedHostIp]="selectedHostIp"></app-viewer>
+    <ng-template #noSelected>
+      <p>No host selected</p>
+    </ng-template>
+  </div>
+</main>
