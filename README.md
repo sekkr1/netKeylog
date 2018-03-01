@@ -28,7 +28,7 @@ Project paperwork available at the [Wiki](https://gitlab.com/dekel1.reches/netKe
 
 ## Built With
 
-* [pyHook](https://sourceforge.net/projects/pyhook/) - The keyboard hook framework used
+* [keyboard](https://github.com/boppreh/keyboard/) - The keyboard hook framework used
 * [pywin32](https://sourceforge.net/projects/pywin32/) - Usage of several winAPI functions
 * [PyCryptodome](https://github.com/Legrandin/pycryptodome/) - Used for encryption assurance
 * [TkInter](https://wiki.python.org/moin/TkInter) - GUI framework used
