@@ -4,8 +4,8 @@ from threading import Thread
 import win32api
 from socket import *
 import struct
-from pyHook import GetKeyState, HookConstants
 from collections import OrderedDict
+import keyboard
 
 
 class Event:
@@ -74,7 +74,7 @@ class Message_socket(socket):
         return data
 
 
-def ToUnicode(vk):
+def ToUnicode(sc):
     """
     Translates the birtual key code into a unicode character using the user's current keyboard locale
 
@@ -86,14 +86,13 @@ def ToUnicode(vk):
     """
     def _ToUnicode(results):
         b = create_unicode_buffer(1)
-        results["code"] = windll.user32.ToUnicode(
-            vk, 0, win32api.GetKeyboardState(), b, 1, 0)
-        results["char"] = b.value
-    results = {}
+        if windll.user32.ToUnicode(win32api.MapVirtualKey(sc, 3), sc, win32api.GetKeyboardState(), b, 1, 0) == 1:
+            results[0] = b.value
+    results = [""]
     t = Thread(target=_ToUnicode, args=(results,))
     t.start()
     t.join()
-    return results
+    return results[0]
 
 
 def get_modifiers():
@@ -101,15 +100,25 @@ def get_modifiers():
     Gets actibe keyboard modifier keys
 
     Returns:
-        A dictionary containing the states of CTRL SHIFT and ALT
+        A dictionary containing the states of CTRL, SHIFT and ALT
     """
-    ctrl_pressed = bool(GetKeyState(
-        HookConstants.VKeyToID('VK_CONTROL')) >> 7)
-    alt_pressed = bool(GetKeyState(
-        HookConstants.VKeyToID('VK_MENU')) >> 7)
-    shift_pressed = bool(GetKeyState(
-        HookConstants.VKeyToID('VK_SHIFT')) >> 7)
+    ctrl_pressed = keyboard.is_pressed("ctrl")
+    alt_pressed = keyboard.is_pressed("alt")
+    shift_pressed = keyboard.is_pressed("shift")
     return OrderedDict([("ctrl", ctrl_pressed), ("shift", shift_pressed), ("alt", alt_pressed)])
+
+
+def is_modifier(key):
+    """
+    Returns True if `key` is a name of a modifier key
+
+    Args:
+        key: name of the key
+
+    Returns:
+        True if `key` is a name of a modifier key
+    """
+    return key[key.find(" ")+1:] in keyboard.all_modifiers[:-1]  # ignore side + ignore windows
 
 
 def GetWindowTextW(hwnd):
