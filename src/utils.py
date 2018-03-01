@@ -42,8 +42,8 @@ class Message_socket(socket):
         Args:
            msg: message to send
         """
-        msg = struct.pack('!I', len(msg)) + msg
-        self.sendall(msg)
+        msg = msg.encode("utf-8")
+        self.sendall(struct.pack('!I', len(msg)) + msg)
 
     def recv_msg(self):
         """
@@ -56,7 +56,7 @@ class Message_socket(socket):
         if not raw_msglen:
             return None
         msglen = struct.unpack('!I', raw_msglen)[0]
-        return self.recvall(msglen)
+        return self.recvall(msglen).decode("utf-8")
 
     def recvall(self, n):
         """

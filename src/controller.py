@@ -31,7 +31,7 @@ def fetch_file(host, on_file_fetched, update_hosts):
     try:
         conn.send_msg("send file")
         file = conn.recv_msg()
-        with open(host + ".log", "a") as f:
+        with open(host + ".log", "a", encoding="utf-8") as f:
             f.write(file)
         on_file_fetched(Event(host=host, file=file))
     except (timeout, error):
