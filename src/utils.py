@@ -85,10 +85,10 @@ def ToUnicode(vk):
         Unicode localed representation of the birtual key code
     """
     def _ToUnicode(results):
-        b = create_unicode_buffer(256)
+        b = create_unicode_buffer(1)
         results["code"] = windll.user32.ToUnicode(
-            vk, 0, win32api.GetKeyboardState(), b, 256, 0)
-        results["char"] = b.value.encode("utf-8")
+            vk, 0, win32api.GetKeyboardState(), b, 1, 0)
+        results["char"] = b.value
     results = {}
     t = Thread(target=_ToUnicode, args=(results,))
     t.start()
@@ -125,7 +125,7 @@ def GetWindowTextW(hwnd):
     length = windll.user32.GetWindowTextLengthW(hwnd)
     buff = create_unicode_buffer(length + 1)
     windll.user32.GetWindowTextW(hwnd, buff, length + 1)
-    return buff.value.encode("utf-8")
+    return buff.value
 
 
 def register_startup(name, path):

