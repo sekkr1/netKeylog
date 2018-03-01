@@ -1,4 +1,4 @@
-# netKeylog
+# netKeylog 
 
 LAN based keylogger with auto client detection
 
@@ -22,9 +22,9 @@ To generate a controller / client pair run
 python generator.py -o <output_dir>
 ```
 
-## Documentation
+## Paperwork
 
-Documentation available at <http://dekel1.reches.gitlab.io/netKeylog/>
+Project paperwork available at the [Wiki]([Paperwork](https://gitlab.com/dekel1.reches/netKeylog/wikis/))
 
 ## Built With
 
