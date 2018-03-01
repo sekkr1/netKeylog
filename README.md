@@ -24,7 +24,7 @@ python generator.py -o <output_dir>
 
 ## Paperwork
 
-Project paperwork available at the [Wiki]([Paperwork](https://gitlab.com/dekel1.reches/netKeylog/wikis/))
+Project paperwork available at the [Wiki](https://gitlab.com/dekel1.reches/netKeylog/wikis/)
 
 ## Built With
 
