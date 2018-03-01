@@ -31,6 +31,7 @@ Documentation available at <http://dekel1.reches.gitlab.io/netKeylog/>
 * [pyHook](https://sourceforge.net/projects/pyhook/) - The keyboard hook framework used
 * [pywin32](https://sourceforge.net/projects/pywin32/) - Usage of several winAPI functions
 * [PyCryptodome](https://github.com/Legrandin/pycryptodome/) - Used for encryption assurance
+* [TkInter](https://wiki.python.org/moin/TkInter) - GUI framework used
 
 ## Author
 
