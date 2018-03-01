@@ -1,8 +1,5 @@
 *.log
 *.pem
 *.pyc
-.vscode/*
-!.vscode/settings.json
-!.vscode/tasks.json
-!.vscode/launch.json
-!.vscode/extensions.json
+.vscode/
+__pycache__/

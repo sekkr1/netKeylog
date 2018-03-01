@@ -1,0 +1,6 @@
+certifi==2018.1.18
+pypiwin32==223
+pywin32==223
+wincertstore==0.2
+pycryptodome==3.4.11
+pyhook==1.5.1
