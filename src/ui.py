@@ -69,11 +69,13 @@ class Interval_frame(ttk.Frame):
     def __init__(self, parent, *args, **kwargs):
         ttk.Frame.__init__(self, parent, *args, **kwargs)
         self.interval = tk.IntVar()
+
+        vcmd = (self.register(self.validate),
+                '%d', '%i', '%P', '%s', '%S', '%v', '%V', '%W')
         self.interval_entry = ttk.Entry(
-            self, width=9, textvariable=self.interval)
+            self, width=9, textvariable=self.interval, validate='key', validatecommand=vcmd)
         self.interval_entry.pack(side=tk.LEFT, fill=tk.X, expand=1)
         self.interval.set(self.DEFAULT_INTERVAL)
-        self.interval_entry.bind("<Key>", self.on_text_changed)
 
         self.interval_unit = ttk.Combobox(
             self, width=6, values=list(self.UNITS.keys()))
@@ -92,16 +94,12 @@ class Interval_frame(ttk.Frame):
         """
         return self.interval.get() * self.UNITS[self.interval_unit.get()]
 
-    def on_text_changed(self, e):
-        """
-        Balidates the interbal text box input
-
-        Returns:
-            "break" if inbalid character
-        """
-        a = self.interval.get()
-        if not e.char.isdigit() and e.char not in ["\x08", ""] or e.char.isdigit() and self.interval.get() <= 0:
-            return "break"
+    def validate(self, action, index, value_if_allowed,
+                 prior_value, text, validation_type, trigger_type, widget_name):
+        if value_if_allowed.isdigit():
+            return int(value_if_allowed) > 0
+        else:
+            return False
 
 
 class Right_panel(ttk.Frame):

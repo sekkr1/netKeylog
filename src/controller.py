@@ -50,7 +50,7 @@ def fetch_files(on_file_fetched, get_fetch_interval, update_hosts):
     while True:
         pool.map(lambda host: fetch_file(
             host, on_file_fetched, update_hosts), hosts.keys())
-        sleep(max(1, get_fetch_interval()))
+        sleep(get_fetch_interval())
 
 
 def listen_to_hosts(update_hosts):
