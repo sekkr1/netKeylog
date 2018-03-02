@@ -34,7 +34,7 @@ extensions = ['sphinx.ext.autodoc',
               #'sphinx.ext.viewcode',
               'sphinxcontrib.napoleon']
 
-autodoc_mock_imports = ["Crypto", "keyboard", "win32gui",
+autodoc_mock_imports = ["Cryptodome", "keyboard", "win32gui",
                         "win32clipboard", "win32api", "winreg", "ctypes.windll"]
 
 # Add any paths that contain templates here, relative to this directory.
