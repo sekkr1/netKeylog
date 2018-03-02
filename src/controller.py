@@ -2,7 +2,7 @@ from socket import *
 from time import sleep
 from threading import Thread
 from constants import *
-from utils import Message_socket, Event, set_keepalive
+from utils import Event, set_keepalive, send_msg, recv_msg
 import ssl
 import sys
 from Cryptodome.PublicKey import RSA
@@ -26,8 +26,8 @@ def fetch_file(host, on_file_fetched, update_hosts):
         return
     conn = hosts[host]
     try:
-        conn.send_msg("send file")
-        file = conn.recv_msg()
+        send_msg(conn, "send file")
+        file = recv_msg(conn)
         with open(host + ".log", "a", encoding="utf-8") as f:
             f.write(file)
         on_file_fetched(Event(host=host, file=file))
@@ -66,7 +66,7 @@ def listen_to_hosts(update_hosts):
     while True:
         data, addr = BDlistener.recvfrom(4096)
         ip = addr[0]
-        decryptedData = cipher_rsa.decrypt(data)
+        decryptedData = cipher_rsa.decrypt(data).decode()
         if decryptedData != ip:
             continue
         if ip in hosts.keys():
@@ -77,7 +77,6 @@ def listen_to_hosts(update_hosts):
             conn.connect((ip, HOST_PORT))
             conn = ssl.wrap_socket(
                 sock=conn, certfile=CERT_FILE, keyfile=PRIVATE_KEY_FILE, server_side=True)
-            conn = Message_socket(_sock=conn)
             hosts[ip] = conn
             update_hosts(Event(hosts=hosts.keys()))
         except:

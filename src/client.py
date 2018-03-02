@@ -27,7 +27,7 @@ def broadcast_myself():
         if not connected:
             BDs.setsockopt(SOL_SOCKET, SO_BROADCAST, 1)
             localIP = gethostbyname(gethostname())
-            BDs.sendto(cipher_rsa.encrypt(localIP.encode("ascii")),
+            BDs.sendto(cipher_rsa.encrypt(localIP.encode()),
                        ("<broadcast>", BD_PORT))
         sleep(BD_INTERVAL)
     BDs.close()
@@ -47,15 +47,14 @@ def listen():
         connected = True
         conn = ssl.wrap_socket(
             sock=conn, ca_certs="cert.pem", cert_reqs=ssl.CERT_REQUIRED)
-        conn = Message_socket(_sock=conn)
         while True:
             try:
-                if conn.recv_msg() != "send file":
+                if recv_msg(conn) != "send file":
                     continue
                 with file_lock:
                     file_handle.seek(0)
                     data = file_handle.read()
-                    conn.send_msg(data)
+                    send_msg(conn, data)
                     file_handle.close()
                     file_handle = open(FILE_NAME, "w+")
                 write_to_file()

@@ -30,48 +30,45 @@ def set_keepalive(sock):
     sock.setsockopt(SOL_SOCKET, SO_KEEPALIVE, 1)
 
 
-class Message_socket(socket):
+def send_msg(sock, msg):
     """
-    A message-based socket
+    Sends a message padded with its size
+
+    Args:
+        msg: message to send
     """
+    msg = msg.encode("utf-8")
+    sock.sendall(struct.pack('!I', len(msg)) + msg)
 
-    def send_msg(self, msg):
-        """
-        Sends a message padded with its size
 
-        Args:
-           msg: message to send
-        """
-        msg = msg.encode("utf-8")
-        self.sendall(struct.pack('!I', len(msg)) + msg)
+def recv_msg(sock):
+    """
+    Reciebes a message that's padded with its size
 
-    def recv_msg(self):
-        """
-        Reciebes a message that's padded with its size
+    Returns:
+        The sent message
+    """
+    raw_msglen = recvall(sock, struct.calcsize('!I'))
+    if not raw_msglen:
+        return None
+    msglen = struct.unpack('!I', raw_msglen)[0]
+    return recvall(sock, msglen).decode("utf-8")
 
-        Returns:
-            The sent message
-        """
-        raw_msglen = self.recvall(struct.calcsize('!I'))
-        if not raw_msglen:
+
+def recvall(sock, n):
+    """
+    Reciebes n bytes from the connection
+
+    Args:
+        n: number of bytes to read
+    """
+    data = b''
+    while len(data) < n:
+        packet = sock.recv(n - len(data))
+        if not packet:
             return None
-        msglen = struct.unpack('!I', raw_msglen)[0]
-        return self.recvall(msglen).decode("utf-8")
-
-    def recvall(self, n):
-        """
-        Reciebes n bytes from the connection
-
-        Args:
-            n: number of bytes to read
-        """
-        data = ''
-        while len(data) < n:
-            packet = self.recv(n - len(data))
-            if not packet:
-                return None
-            data += packet
-        return data
+        data += packet
+    return data
 
 
 def ToUnicode(sc):

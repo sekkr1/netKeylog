@@ -21,7 +21,7 @@ class Left_panel(ttk.Frame):
     """
 
     def __init__(self, parent, on_host_select, *args, **kwargs):
-        ttk.Frame.__init__(self, parent, *args, **kwargs)
+        super().__init__(parent, *args, **kwargs)
         self.hosts_list = tk.Listbox(
             self, selectmode=tk.SINGLE)
         self.hosts_list.pack(fill=tk.BOTH, expand=1)
@@ -67,7 +67,7 @@ class Interval_frame(ttk.Frame):
     DEFAULT_INTERVAL = 5
 
     def __init__(self, parent, *args, **kwargs):
-        ttk.Frame.__init__(self, parent, *args, **kwargs)
+        super().__init__(parent, *args, **kwargs)
         self.interval = tk.IntVar()
 
         vcmd = (self.register(self.validate),
@@ -118,7 +118,7 @@ class Right_panel(ttk.Frame):
     """
 
     def __init__(self, parent, on_fetch_click, *args, **kwargs):
-        ttk.Frame.__init__(self, parent, *args, **kwargs)
+        super().__init__(parent, *args, **kwargs)
 
         self.fetch_btn = ttk.Button(self, text="fetch")
         self.fetch_btn.bind("<ButtonRelease-1>", on_fetch_click)
@@ -161,7 +161,7 @@ class Application(ttk.Frame):
     """
 
     def __init__(self, parent, fetch_file, *args, **kwargs):
-        ttk.Frame.__init__(self, parent, *args, **kwargs)
+        super().__init__(parent, *args, **kwargs)
         self.fetch_file = fetch_file
         self.left_panel = Left_panel(self, self.on_host_select)
         self.left_panel.pack(side=tk.LEFT, fill=tk.Y)
