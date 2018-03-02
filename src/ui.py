@@ -1,5 +1,6 @@
 import tkinter as tk
 from tkinter import ttk
+from tkinter.scrolledtext import ScrolledText
 from threading import Thread
 from collections import OrderedDict
 
@@ -75,7 +76,7 @@ class Interval_frame(ttk.Frame):
         self.interval_entry.bind("<Key>", self.on_text_changed)
 
         self.interval_unit = ttk.Combobox(
-            self, width=6, values=self.UNITS.keys())
+            self, width=6, values=list(self.UNITS.keys()))
         self.interval_unit.current(self.DEFAULT_UNIT)
         self.interval_unit.pack(side=tk.LEFT)
 
@@ -98,7 +99,8 @@ class Interval_frame(ttk.Frame):
         Returns:
             "break" if inbalid character
         """
-        if not e.char.isdigit() and e.char not in ["\x08", ""]:
+        a = self.interval.get()
+        if not e.char.isdigit() and e.char not in ["\x08", ""] or e.char.isdigit() and self.interval.get() <= 0:
             return "break"
 
 
@@ -124,7 +126,7 @@ class Right_panel(ttk.Frame):
         self.fetch_btn.bind("<ButtonRelease-1>", on_fetch_click)
         self.fetch_btn.pack(fill=tk.X)
 
-        self.keylog_text = tk.scrolledtext.ScrolledText(
+        self.keylog_text = ScrolledText(
             self, state="disabled")
         self.keylog_text.pack(fill=tk.BOTH, expand=1)
 

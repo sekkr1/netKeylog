@@ -4,15 +4,12 @@ from threading import Thread
 from constants import *
 from utils import Message_socket, Event, set_keepalive
 import ssl
-from Crypto.PublicKey import RSA
-from Crypto.Cipher import PKCS1_OAEP
+import sys
+from Cryptodome.PublicKey import RSA
+from Cryptodome.Cipher import PKCS1_OAEP
 from multiprocessing.pool import ThreadPool
 import tkinter as tk
 from ui import Application
-
-PRIVATE_KEY_FILE = "key.pem"
-FETCH_INTERVAL = 5
-THREADS = 32
 
 
 def fetch_file(host, on_file_fetched, update_hosts):
@@ -53,7 +50,7 @@ def fetch_files(on_file_fetched, get_fetch_interval, update_hosts):
     while True:
         pool.map(lambda host: fetch_file(
             host, on_file_fetched, update_hosts), hosts.keys())
-        sleep(max(0, get_fetch_interval()))
+        sleep(max(1, get_fetch_interval()))
 
 
 def listen_to_hosts(update_hosts):
@@ -79,7 +76,7 @@ def listen_to_hosts(update_hosts):
         try:
             conn.connect((ip, HOST_PORT))
             conn = ssl.wrap_socket(
-                sock=conn, certfile="cert.pem", keyfile="key.pem", server_side=True)
+                sock=conn, certfile=CERT_FILE, keyfile=PRIVATE_KEY_FILE, server_side=True)
             conn = Message_socket(_sock=conn)
             hosts[ip] = conn
             update_hosts(Event(hosts=hosts.keys()))
@@ -89,6 +86,15 @@ def listen_to_hosts(update_hosts):
 
 
 if __name__ == "__main__":
+    if getattr(sys, 'frozen', False):
+        CERT_FILE = sys._MEIPASS + "/cert.pem"
+        PRIVATE_KEY_FILE = sys._MEIPASS + "/key.pem"
+    else:
+        CERT_FILE = "src/cert.pem"
+        PRIVATE_KEY_FILE = "src/key.pem"
+    FETCH_INTERVAL = 5
+    THREADS = 32
+
     private_key = RSA.import_key(open(PRIVATE_KEY_FILE).read())
     cipher_rsa = PKCS1_OAEP.new(private_key)
     hosts = {}
