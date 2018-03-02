@@ -1,6 +1,6 @@
 certifi==2018.1.18
 keyboard==0.11.0
-pycryptodome==3.4.11
+pycryptodomex==3.4.12
 pypiwin32==223
 pywin32==223
 wincertstore==0.2
