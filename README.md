@@ -16,7 +16,7 @@ pip install -r requirements.txt
 
 ## Deployment
 
-To generate a controller / client pair run
+To generate a controller / client pair run on an elevated prompt
 
 ```
 make
