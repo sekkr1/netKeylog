@@ -31,7 +31,9 @@ Project paperwork available at the [Wiki](https://gitlab.com/dekel1.reches/netKe
 * [keyboard](https://github.com/boppreh/keyboard/) - The keyboard hook framework used
 * [pywin32](https://sourceforge.net/projects/pywin32/) - Usage of several winAPI functions
 * [PyCryptodome](https://github.com/Legrandin/pycryptodome/) - Used for encryption assurance
-* [TkInter](https://wiki.python.org/moin/TkInter) - GUI framework used
+* [TkInter](https://wiki.python.org/moin/TkInter/) - GUI framework used
+* [PyInstaller](http://www.pyinstaller.org/) - Python executable compiler
+* [OpenSSL](https://www.openssl.org/) - Private key - Certificate pair generation
 
 ## Author
 
