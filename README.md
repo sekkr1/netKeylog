@@ -19,8 +19,10 @@ pip install -r requirements.txt
 To generate a controller / client pair run
 
 ```
-python generator.py -o <output_dir>
+make
 ```
+
+And the output executable will be under the folder dist/
 
 ## Paperwork
 
