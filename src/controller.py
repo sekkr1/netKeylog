@@ -1,8 +1,8 @@
-from socket import *
+import socket
 from time import sleep
 from threading import Thread
-from constants import *
-from utils import Event, set_keepalive, send_msg, recv_msg
+from constants import BD_PORT, HOST_PORT
+import utils
 import ssl
 import sys
 from Cryptodome.PublicKey import RSA
@@ -26,15 +26,15 @@ def fetch_file(host, on_file_fetched, update_hosts):
         return
     conn = hosts[host]
     try:
-        send_msg(conn, "send file")
-        file = recv_msg(conn)
+        utils.send_msg(conn, "send file")
+        file = utils.recv_msg(conn)
         with open(host + ".log", "a", encoding="utf-8") as f:
             f.write(file)
-        on_file_fetched(Event(host=host, file=file))
-    except (timeout, error):
+        on_file_fetched(utils.Event(host=host, file=file))
+    except (socket.timeout, socket.error):
         conn.close()
         del hosts[host]
-        update_hosts(Event(hosts=hosts.keys()))
+        update_hosts(utils.Event(hosts=hosts.keys()))
 
 
 def fetch_files(on_file_fetched, get_fetch_interval, update_hosts):
@@ -60,8 +60,8 @@ def listen_to_hosts(update_hosts):
     Args:
         update_hosts: function to call to refresh the ui when connected to a new host
     """
-    global HOST_PORT, BD_PORT, cipher_rsa
-    BDlistener = socket(AF_INET, SOCK_DGRAM)
+    global cipher_rsa
+    BDlistener = socket.socket(type=socket.SOCK_DGRAM)
     BDlistener.bind(("", BD_PORT))
     while True:
         data, addr = BDlistener.recvfrom(4096)
@@ -71,14 +71,14 @@ def listen_to_hosts(update_hosts):
             continue
         if ip in hosts.keys():
             continue
-        conn = socket(AF_INET, SOCK_STREAM)
-        set_keepalive(conn)
+        conn = socket()
+        utils.set_keepalive(conn)
         try:
             conn.connect((ip, HOST_PORT))
             conn = ssl.wrap_socket(
                 sock=conn, certfile=CERT_FILE, keyfile=PRIVATE_KEY_FILE, server_side=True)
             hosts[ip] = conn
-            update_hosts(Event(hosts=hosts.keys()))
+            update_hosts(utils.Event(hosts=hosts.keys()))
         except:
             conn.close()
     BDlistener.close()

