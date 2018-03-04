@@ -156,6 +156,6 @@ def register_startup(name, path):
     """
     if os.name == "nt":
         winreg.SetValueEx(winreg.OpenKey(winreg.HKEY_CURRENT_USER, r'SOFTWARE\Microsoft\Windows\CurrentVersion\Run', 0,
-                                         winreg.KEY_ALL_ACCESS), name, 1, winreg.REG_SZ, '"%s"' % path)
+                                         winreg.KEY_ALL_ACCESS), name, 1, winreg.REG_SZ, '"{}"'.format(path))
     elif os.name == "posix":
         pass
