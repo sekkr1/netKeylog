@@ -144,7 +144,7 @@ class Right_panel(ttk.Frame):
         self.keylog_text.see(tk.END)
 
 
-class Application(ttk.Frame):
+class Application(tk.Tk):
     """
     UI mainframe containing the left and right panels
 
@@ -160,8 +160,10 @@ class Application(ttk.Frame):
         right_panel: the right UI panel
     """
 
-    def __init__(self, parent, fetch_file, *args, **kwargs):
-        super().__init__(parent, *args, **kwargs)
+    def __init__(self, fetch_file, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.title("Controller")
+        self.geometry("1100x550")
         self.fetch_file = fetch_file
         self.left_panel = Left_panel(self, self.on_host_select)
         self.left_panel.pack(side=tk.LEFT, fill=tk.Y)

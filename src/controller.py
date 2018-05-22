@@ -1,14 +1,15 @@
 import socket
 from time import sleep
 from threading import Thread
-from constants import BD_PORT, HOST_PORT
+from shared import BD_PORT, HOST_PORT
 import utils
 import ssl
 import sys
+import os
+from os import path
 from Cryptodome.PublicKey import RSA
 from Cryptodome.Cipher import PKCS1_OAEP
 from multiprocessing.pool import ThreadPool
-import tkinter as tk
 from ui import Application
 
 
@@ -62,16 +63,19 @@ def listen_to_hosts(update_hosts):
     """
     global cipher_rsa
     BDlistener = socket.socket(type=socket.SOCK_DGRAM)
+    BDlistener.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     BDlistener.bind(("", BD_PORT))
     while True:
         data, addr = BDlistener.recvfrom(4096)
         ip = addr[0]
-        decryptedData = cipher_rsa.decrypt(data).decode()
-        if decryptedData != ip:
+        try:
+            cipher_rsa.decrypt(data)
+        except Exception as e:
+            # wrong certificate
             continue
         if ip in hosts.keys():
             continue
-        conn = socket()
+        conn = socket.socket()
         utils.set_keepalive(conn)
         try:
             conn.connect((ip, HOST_PORT))
@@ -85,29 +89,18 @@ def listen_to_hosts(update_hosts):
 
 
 if __name__ == "__main__":
-    if getattr(sys, 'frozen', False):
-        CERT_FILE = sys._MEIPASS + "/cert.pem"
-        PRIVATE_KEY_FILE = sys._MEIPASS + "/key.pem"
-    else:
-        CERT_FILE = "src/cert.pem"
-        PRIVATE_KEY_FILE = "src/key.pem"
-    FETCH_INTERVAL = 5
+    CERT_FILE = utils.resource_path("cert.pem")
+    PRIVATE_KEY_FILE = utils.resource_path("key.pem")
     THREADS = 32
 
     private_key = RSA.import_key(open(PRIVATE_KEY_FILE).read())
     cipher_rsa = PKCS1_OAEP.new(private_key)
     hosts = {}
     pool = ThreadPool(processes=THREADS)
-
-    root = tk.Tk()
-    root.title("controller")
-    root.columnconfigure(0, weight=1)
-    root.rowconfigure(0, weight=1)
-    root.geometry("1100x550")
-    app = Application(root, fetch_file, padding="5")
+    
+    app = Application(fetch_file)
     Thread(target=fetch_files, args=(app.on_file_fetched,
-                                     app.get_interval, app.update_hosts)).start()
-    Thread(target=listen_to_hosts, args=(app.update_hosts,)).start()
-    app.grid(column=0, row=0, sticky=tk.N +
-             tk.S + tk.E + tk.W)
-    root.mainloop()
+                                     app.get_interval, app.update_hosts), daemon=True).start()
+    Thread(target=listen_to_hosts, args=(
+        app.update_hosts,), daemon=True).start()
+    app.mainloop()

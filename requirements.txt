@@ -1,11 +1,12 @@
 altgraph==0.15
-certifi==2018.1.18
+certifi==2018.4.16
 future==0.16.0
-keyboard==0.11.0
+keyboard==0.13.2
 macholib==1.9
 pefile==2017.11.5
-pycryptodomex==3.4.12
+pycryptodomex==3.6.1
 PyInstaller==3.3.1
+pyperclip==1.6.0
 pypiwin32==223
 pywin32==223
 wincertstore==0.2

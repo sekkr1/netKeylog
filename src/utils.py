@@ -1,10 +1,13 @@
 import winreg
 import os
+from os import path
 from threading import Thread
 import socket
 import struct
 from collections import OrderedDict
 import keyboard
+import sys
+import netifaces
 
 if os.name == 'nt':
     import win32api
@@ -14,6 +17,13 @@ if os.name == 'nt':
 elif os.name == 'posix':
     from subprocess import check_output
 
+def broadcast_addresses():
+    bd_list = []
+    for interface in netifaces.interfaces():
+        for link in netifaces.ifaddresses(interface)[netifaces.AF_INET]:
+            if link['broadcast'] != "127.255.255.255":
+                bd_list.append(link['broadcast'])
+    return bd_list
 
 class Event:
     """
@@ -26,6 +36,11 @@ class Event:
 
     def __neq__(self, other): return self.__dict__ != other.__dict__
 
+
+def resource_path(relative_path):
+    if getattr(sys, 'frozen', False):
+        return path.join(sys._MEIPASS, relative_path)
+    return path.join(path.abspath("."), relative_path)
 
 def set_keepalive(sock):
     """

